@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0F1115" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Classbook">
 <link rel="manifest" href="manifest.json">
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Classbook</title>
 <style>
-:root{--bg:#fff;--fg:#111;--mut:#8a8a8a;--line:#ececec;--acc:#2f6fed;--ok:#1a9a5a;--bad:#c94a4a;--soft:#f5f5f5}
-@media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--line:#242424;--soft:#1b1b1b}}
+:root{--bg:#FAF8F5;--fg:#141414;--mut:#8a8580;--line:#ebe6e0;--acc:#1E3A8A;--accl:#c9d3ea;--bur:#7A1F3D;--soft:#f1ede8;--nav:#141414;--navfg:#FAF8F5}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1115;--fg:#F3EFE9;--mut:#8b8f98;--line:#23262d;--soft:#181b21;--acc:#3B5BDB;--accl:#2c3550;--bur:#B0405F;--nav:#07080a;--navfg:#F3EFE9}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif}
 main{max-width:620px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 18px 100px}
@@ -21,17 +21,17 @@ h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)
 .mut{color:var(--mut)}.sm{font-size:13px}
 .row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
 .grow{flex:1;min-width:0}
-.big{font-size:32px;font-weight:600;letter-spacing:-.02em;margin-top:6px}
+.big{font-size:32px;font-weight:600;letter-spacing:-.02em;margin-top:6px;color:var(--bur)}.big.mut{color:var(--mut)}
 button{font:inherit;color:inherit;background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
-button.pri{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
 button.ghost{border:none;padding:6px 8px;color:var(--mut)}
-.st{width:34px;height:34px;padding:0;border-radius:50%;display:grid;place-items:center;flex:none}
-.st.done{background:var(--ok);border-color:var(--ok);color:#fff}
-.st.cancel{background:var(--bad);border-color:var(--bad);color:#fff}
+.st{width:34px;height:34px;padding:0;border-radius:50%;display:grid;place-items:center;flex:none;border:1.5px solid var(--accl)}
+.st.done{background:var(--bur);border-color:var(--bur);color:#fff}
+.st.cancel{background:none;border-color:var(--mut);color:var(--mut)}
 .tag{font-size:11px;padding:1px 7px;border-radius:10px;background:var(--soft);color:var(--mut)}
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
-nav button{border:none;border-radius:0;flex:1;max-width:150px;padding:14px 0;color:var(--mut)}
-nav button.on{color:var(--fg);font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav button{border:none;border-radius:0;flex:1;max-width:150px;padding:14px 0;color:#9a958f;border-bottom:3px solid transparent}
+nav button.on{color:var(--navfg);font-weight:600;border-bottom-color:var(--acc)}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
 input,select{font:inherit;color:inherit;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 label{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}
@@ -39,7 +39,7 @@ label{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}
 .slot{display:grid;grid-template-columns:1fr 1fr 34px;gap:6px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border-radius:16px;padding:4px 10px}
-.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:9}
 #sheet.open{display:flex}
 #sheet>div{background:var(--bg);width:100%;max-width:620px;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;padding:20px 18px calc(28px + env(safe-area-inset-bottom))}
@@ -48,8 +48,8 @@ label{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:12px}
 .cal .h{font-size:11px;color:var(--mut);text-align:center;padding:4px 0}
 .cal .d{min-height:64px;border-radius:8px;padding:4px;background:var(--soft);cursor:pointer;overflow:hidden;border:1px solid transparent}
-.cal .d.out{opacity:.35}.cal .d.sel{border-color:var(--fg)}
-.cal .d .n{font-size:12px;font-weight:600}.cal .d.today .n{color:var(--acc)}
+.cal .d{position:relative}.cal .d.out{opacity:.35}.cal .d.sel{border-color:var(--fg)}.cal .d.today{border:2px solid var(--acc)}.cal .d.alldone::after{content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--bur)}
+.cal .d .n{font-size:12px;font-weight:600}.cal .d.today .n{color:var(--acc)}h1{color:var(--fg)}
 .ev{font-size:10px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid var(--c);padding-left:3px;margin-top:2px}
 .ev.done{opacity:.55}.ev.cancel{text-decoration:line-through;opacity:.4}
 .lv{display:none}@media (min-width:560px){.cal .d{min-height:84px}.ev{font-size:11px}.lv{display:inline}}
@@ -66,7 +66,8 @@ a{color:var(--acc)}
 <script>
 /* ================= data ================= */
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const COLORS=["#2f6fed","#1a9a5a","#d9822b","#9b51e0","#c94a4a","#0aa3a3","#8a6d3b"];
+const COLORS=["#1E3A8A","#7A1F3D","#5B7DB1","#B5677D","#4A4A4A","#4F6D8A","#8C3B2E"];
+const OLD={"#2f6fed":"#1E3A8A","#1a9a5a":"#7A1F3D","#d9822b":"#5B7DB1","#9b51e0":"#B5677D","#c94a4a":"#4A4A4A","#0aa3a3":"#4F6D8A","#8a6d3b":"#8C3B2E"};
 const TZ="Europe/Berlin";
 const SEED={v:2,updatedAt:0,
  rates:{1:11,2:16,3:20,4:25},vnd:0,vndAt:0,vndManual:false,showVnd:false,
@@ -189,9 +190,9 @@ function vWeek(){const m=monday(nowDE());m.setDate(m.getDate()+weekOff*7);const 
   let h=`<div class="bar"><h1>${weekOff===0?"This week":f(m)+" – "+f(e)}</h1>${syncLbl}</div>
   <div class="big">${eur(tot)}</div><div class="mut sm">earned · ${eur(plan)} planned ${vndTxt(tot)?"· "+vndTxt(tot):""}</div>
   <div class="bar" style="margin-top:12px"><div><button class="ghost" onclick="weekOff--;render()">‹</button><button class="ghost" onclick="weekOff=0;render()">Today</button><button class="ghost" onclick="weekOff++;render()">›</button></div>
-  <button onclick="extraForm()">+ Session</button></div>`;
-  let day="";for(const o of occ){if(o.date!==day){day=o.date;const d=parse(day);h+=`<h2>${DAYS[dow(d)]} ${d.getDate()}/${d.getMonth()+1}${day===today?" · today":""}</h2>`}h+=sessRow(o)}
-  if(!occ.length)h+=`<div class="empty">No sessions this week.</div>`;
+  <button onclick="extraForm()">+ Add</button></div>`;
+  for(let d=new Date(m);d<=e;d.setDate(d.getDate()+1)){const ds=iso(d),list=occ.filter(o=>o.date===ds);
+    h+=`<div class="bar"><h2>${DAYS[dow(d)]} ${d.getDate()}/${d.getMonth()+1}${ds===today?" · today":""}</h2><button class="ghost" onclick="extraForm('${ds}')" aria-label="add">+</button></div>`+list.map(o=>sessRow(o)).join("")}
   return h+`<p class="mut sm" style="margin-top:16px">German time. Tap circle: done → cancelled → open. Tap a row to edit or move it.</p>`}
 
 function vMonth(){const n=nowDE(),f=new Date(n.getFullYear(),n.getMonth()+monthOff,1),t=new Date(f.getFullYear(),f.getMonth()+1,0);
@@ -204,11 +205,11 @@ function vMonth(){const n=nowDE(),f=new Date(n.getFullYear(),n.getMonth()+monthO
   <div><div class="big mut">${eur(plan)}</div><div class="mut sm">planned · ${can} cancelled ${vndTxt(plan)?"<br>"+vndTxt(plan):""}</div></div></div>
   <div class="cal">${DAYS.map(d=>`<div class="h">${d}</div>`).join("")}`;
   for(let d=new Date(gs);d<=ge;d.setDate(d.getDate()+1)){const ds=iso(d),list=occ.filter(o=>o.date===ds);
-    h+=`<div class="d ${d.getMonth()!==f.getMonth()?"out":""} ${ds===today?"today":""} ${ds===selDay?"sel":""}" onclick="selDay='${ds}';render()"><div class="n">${d.getDate()}</div>
+    h+=`<div class="d ${d.getMonth()!==f.getMonth()?"out":""} ${ds===today?"today":""} ${ds===selDay?"sel":""} ${list.length&&list.every(o=>entry(o).s)&&list.some(o=>entry(o).s==="done")?"alldone":""}" onclick="${list.length||selDay===ds?`selDay='${ds}';render()`:`selDay='${ds}';render();extraForm('${ds}')`}"><div class="n">${d.getDate()}</div>
     ${list.map(o=>{const c=cls(o.cid);return `<div class="ev ${entry(o).s||""}" style="--c:${c.color}">${o.start}<span class="lv"> ${esc(c.level||c.name)}</span></div>`}).join("")}</div>`}
   h+=`</div>`;
   if(selDay){const d=parse(selDay),list=occ.filter(o=>o.date===selDay);
-    h+=`<div class="bar"><h2>${d.toLocaleDateString("en",{weekday:"long",day:"numeric",month:"long"})}</h2><button class="ghost" onclick="extraForm('${selDay}')">+ Session</button></div>${list.map(o=>sessRow(o)).join("")||'<div class="empty">Free day.</div>'}`}
+    h+=`<div class="bar"><h2>${d.toLocaleDateString("en",{weekday:"long",day:"numeric",month:"long"})}</h2></div>${list.map(o=>sessRow(o)).join("")||'<div class="mut sm" style="padding:10px 0">Free day.</div>'}<button style="margin-top:10px;width:100%" onclick="extraForm('${selDay}')">+ Add session on this day</button>`}
   h+=`<h2>By class</h2>`;
   for(const id of Object.keys(by)){const c=cls(id);h+=`<div class="row"><span class="dot" style="--c:${c.color}"></span><div class="grow"><div>${esc(c.name)}</div><div class="mut sm">${by[id].d} done · ${eur(by[id].p)} planned</div></div><div>${eur(by[id].e)}</div></div>`}
   if(!Object.keys(by).length)h+=`<div class="empty">Nothing this month.</div>`;
@@ -308,19 +309,36 @@ function saveSess(k){const o=findOcc(k),c=cls(o.cid);const s=$("#ss").value,n=+$
 function delExtra(k){const x=S.extras.find(x=>x.id===k);
   if(x&&x.from){const c=cls(x.cid);for(const sl of c.slots||[]){const ok=c.id+"|"+x.from+"|"+sl.start;if(S.log[ok]&&S.log[ok].s==="moved")delete S.log[ok]}}
   S.extras=S.extras.filter(x=>x.id!==k);delete S.log[k];save();closeS();render()}
-function extraForm(day){const act=S.classes.filter(c=>!c.archived);if(!act.length){go("classes");return classForm()}
-  sheet(`<h1>One-off session</h1><p class="mut sm">Make-up lesson or trial. For a regular class, add it under Classes instead.</p>
-  <label>Class</label><select id="xc">${act.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
-  <label>Date</label><input id="xd" type="date" value="${day||todayDE()}">
-  <div class="g2"><div><label>Start</label><input id="xs" type="time" value="21:00"></div><div><label>End</label><input id="xe" type="time" value="22:00"></div></div>
-  <label>Students attending</label><input id="xn" type="number" min="1" value="1">
-  <div class="actions"><button onclick="closeS()">Cancel</button><button class="pri" onclick="saveExtra()">Add</button></div>`)}
-function saveExtra(){const x={id:"x"+uid(),cid:$("#xc").value,date:$("#xd").value,start:$("#xs").value,end:$("#xe").value};S.extras.push(x);
-  const n=+$("#xn").value;if(n&&n!==size(cls(x.cid)))S.log[x.id]={n};save();closeS();render()}
+function extraForm(day,time){const act=S.classes.filter(c=>!c.archived);const d=day||todayDE();
+  sheet(`<h1>Add session</h1>
+  <label>Class</label><select id="xc" onchange="xcChange()">${act.map(c=>`<option value="${c.id}">${esc(c.name)} · ${size(c)}P</option>`).join("")}<option value="__new" ${act.length?"":"selected"}>＋ New class / one-off student…</option></select>
+  <div id="xnew" style="display:none"><div class="g2"><div><label>Name</label><input id="xname" placeholder="e.g. Trial – Nam"></div><div><label>Level</label><input id="xlv" placeholder="A1"></div></div></div>
+  <label>Date</label><input id="xd" type="date" value="${d}" onchange="xRep()">
+  <div class="g2"><div><label>Start</label><input id="xs" type="time" value="${time||"21:00"}" onchange="xEnd()"></div><div><label>End</label><input id="xe" type="time" value="${addMin(time||"21:00",60)}"></div></div>
+  <div class="g2"><div><label>Students</label><input id="xn" type="number" min="1" value="1"></div><div><label>Repeat</label><select id="xr"></select></div></div>
+  <p id="xrate" class="mut sm"></p>
+  <div class="actions"><button onclick="closeS()">Cancel</button><button class="pri" onclick="saveExtra()">Add</button></div>`);
+  xcChange();xRep()}
+const addMin=(t,m)=>{const[h,mm]=t.split(":").map(Number);const x=(h*60+mm+m)%1440;return String(x/60|0).padStart(2,"0")+":"+String(x%60).padStart(2,"0")};
+function xEnd(){$("#xe").value=addMin($("#xs").value,60)}
+function xcChange(){const v=$("#xc").value,c=cls(v);$("#xnew").style.display=v==="__new"?"block":"none";
+  if(c){$("#xn").value=size(c);const sl=(c.slots||[])[0];if(sl){$("#xs").value=sl.start;$("#xe").value=sl.end}}
+  $("#xn").oninput=()=>$("#xrate").textContent=eur(rate(+$("#xn").value))+" per session";$("#xn").oninput()}
+function xRep(){const dn=DAYS[dow(parse($("#xd").value))];
+  $("#xr").innerHTML=`<option value="0">Does not repeat</option><option value="1">Every ${dn}</option><option value="2">Every 2nd ${dn}</option><option value="4">Every 4th ${dn}</option>`}
+function saveExtra(){let cid=$("#xc").value;const date=$("#xd").value,start=$("#xs").value,end=$("#xe").value,n=+$("#xn").value||1,rep=+$("#xr").value;
+  if(!date||!start)return;
+  if(cid==="__new"){const nm=$("#xname").value.trim()||(rep?"New class":"One-off "+date.slice(5));
+    const c={id:uid(),name:nm,level:$("#xlv").value.trim(),size:n,color:COLORS[S.classes.length%COLORS.length],studentIds:[],startNo:0,since:date,until:"",slots:[]};S.classes.push(c);cid=c.id}
+  const c=cls(cid);
+  if(rep){c.slots=c.slots||[];c.slots.push({dow:dow(parse(date)),start,end,every:rep});
+    if(!c.since||c.since>date)c.since=date;if(n!==size(c))c.size=n}
+  else{const x={id:"x"+uid(),cid,date,start,end};S.extras.push(x);if(n!==size(c))S.log[x.id]={n}}
+  save();closeS();render()}
 
 /* ================= boot ================= */
 window.addEventListener("hashchange",()=>{const t=location.hash.slice(1);if(t&&t!==tab){tab=t;render()}});
-loadLocal();render();pull();if(S.showVnd)updateVnd();
+loadLocal();S.classes.forEach(c=>{if(OLD[c.color])c.color=OLD[c.color]});render();pull();if(S.showVnd)updateVnd();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
