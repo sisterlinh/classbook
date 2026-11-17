@@ -210,7 +210,7 @@ function vMonth(){const n=nowDE(),f=new Date(n.getFullYear(),n.getMonth()+monthO
   <div><div class="big mut">${eur(plan)}</div><div class="mut sm">planned · ${can} cancelled ${vndTxt(plan)?"<br>"+vndTxt(plan):""}</div></div></div>
   <div class="cal">${DAYS.map(d=>`<div class="h">${d}</div>`).join("")}`;
   for(let d=new Date(gs);d<=ge;d.setDate(d.getDate()+1)){const ds=iso(d),list=occ.filter(o=>o.date===ds);
-    h+=`<div class="d ${d.getMonth()!==f.getMonth()?"out":""} ${ds===today?"today":""} ${ds===selDay?"sel":""} ${list.length&&list.every(o=>entry(o).s)&&list.some(o=>entry(o).s==="done")?"alldone":""}" onclick="${list.length||selDay===ds?`selDay='${ds}';render()`:`selDay='${ds}';render();extraForm('${ds}')`}"><div class="n">${d.getDate()}</div>
+    h+=`<div class="d ${d.getMonth()!==f.getMonth()?"out":""} ${ds===today?"today":""} ${ds===selDay?"sel":""} ${list.length&&list.every(o=>entry(o).s)&&list.some(o=>entry(o).s==="done")?"alldone":""}" onclick="selDay='${ds}';render();dayForm('${ds}')"><div class="n">${d.getDate()}</div>
     ${list.map(o=>{const c=cls(o.cid);return `<div class="ev ${entry(o).s||""}" style="--c:${c.color}">${o.start}<span class="lv"> ${esc(c.level||c.name)}</span></div>`}).join("")}</div>`}
   h+=`</div>`;
   if(selDay){const d=parse(selDay),list=occ.filter(o=>o.date===selDay);
@@ -234,7 +234,7 @@ function vClasses(){const today=todayDE();
   ${arc.length?"<h2>Archived</h2>"+arc.map(row).join(""):""}`}
 
 function vSettings(){const ks=Object.keys(S.rates).map(Number).sort((a,b)=>a-b),c=getCfg();
-  return `<h1>Settings</h1>
+  return `<h1>Settings</h1><p class="mut sm">Version 6</p>
   <h2>Rate per session (EUR)</h2>
   ${ks.map((k,i)=>`<div class="row"><div class="grow">${k} student${k>1?"s":""}${i===ks.length-1?" +":""}</div><input type="number" step="0.5" style="width:100px" value="${S.rates[k]}" onchange="S.rates[${k}]=+this.value;save();render()"></div>`).join("")}
   <button style="margin-top:8px" onclick="const k=Math.max(...Object.keys(S.rates).map(Number))+1;S.rates[k]=S.rates[k-1];save();render()">+ Group size</button>
@@ -255,8 +255,8 @@ function exportJson(){const a=document.createElement("a");a.href=URL.createObjec
 function importJson(f){if(!f)return;f.text().then(t=>{try{S=Object.assign(JSON.parse(JSON.stringify(SEED)),JSON.parse(t));save();render()}catch(e){}})}
 
 /* ================= actions & forms ================= */
-function cycle(k){const e=Object.assign({},S.log[k]);e.s=!e.s?"done":e.s==="done"?"cancel":undefined;if(!e.s)delete e.s;
-  Object.keys(e).length?S.log[k]=e:delete S.log[k];save();render()}
+function cycle(k){const _o=$('#sheet').classList.contains('open')&&findOcc(k).date;const e=Object.assign({},S.log[k]);e.s=!e.s?"done":e.s==="done"?"cancel":undefined;if(!e.s)delete e.s;
+  Object.keys(e).length?S.log[k]=e:delete S.log[k];save();render();if(_o)dayForm(_o)}
 function sheet(h){$("#sheetBody").innerHTML=h;$("#sheet").classList.add("open")}
 function closeS(){$("#sheet").classList.remove("open")}
 $("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")closeS()});
@@ -316,6 +316,11 @@ function saveSess(k){const o=findOcc(k),c=cls(o.cid);const s=$("#ss").value,n=+$
 function delExtra(k){const x=S.extras.find(x=>x.id===k);
   if(x&&x.from){const c=cls(x.cid);for(const sl of c.slots||[]){const ok=c.id+"|"+x.from+"|"+sl.start;if(S.log[ok]&&S.log[ok].s==="moved")delete S.log[ok]}}
   S.extras=S.extras.filter(x=>x.id!==k);delete S.log[k];save();closeS();render()}
+function dayForm(ds){const d=parse(ds),m=monday(d),e=new Date(m);e.setDate(e.getDate()+6);
+  const list=occurrences(d,d);
+  sheet(`<h1>${d.toLocaleDateString("en",{weekday:"long",day:"numeric",month:"long"})}</h1>
+  ${list.map(o=>sessRow(o)).join("")||'<p class="mut">No sessions yet.</p>'}
+  <button class="pri" style="width:100%;margin-top:16px;padding:12px" onclick="extraForm('${ds}')">+ Add session</button>`)}
 function extraForm(day,time){const act=S.classes.filter(c=>!c.archived);const d=day||todayDE();
   sheet(`<h1>Add session</h1>
   <label>Class</label><select id="xc" onchange="xcChange()">${act.map(c=>`<option value="${c.id}">${esc(c.name)} · ${size(c)}P</option>`).join("")}<option value="__new" ${act.length?"":"selected"}>＋ New class / one-off student…</option></select>
@@ -328,7 +333,7 @@ function extraForm(day,time){const act=S.classes.filter(c=>!c.archived);const d=
   xcChange();xRep()}
 const addMin=(t,m)=>{const[h,mm]=t.split(":").map(Number);const x=(h*60+mm+m)%1440;return String(x/60|0).padStart(2,"0")+":"+String(x%60).padStart(2,"0")};
 function xEnd(){$("#xe").value=addMin($("#xs").value,60)}
-function xcChange(){const v=$("#xc").value,c=cls(v);$("#xnew").style.display=v==="__new"?"block":"none";
+function xcChange(){const v=$("#xc").value,c=cls(v);$("#xnew").style.display=v==="__new"?"block":"none";if(v==="__new")$("#xn").value=1;
   if(c){$("#xn").value=size(c);const sl=(c.slots||[])[0];if(sl){$("#xs").value=sl.start;$("#xe").value=sl.end}}
   $("#xn").oninput=()=>$("#xrate").textContent=eur(rate(+$("#xn").value))+" per session";$("#xn").oninput()}
 function xRep(){const dn=DAYS[dow(parse($("#xd").value))];
