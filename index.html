@@ -105,7 +105,7 @@ const todayDE=()=>new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",mo
 const nowDE=()=>parse(todayDE());
 const cls=id=>S.classes.find(c=>c.id===id);
 const stName=id=>(S.students.find(s=>s.id===id)||{}).name||"?";
-const size=c=>c?((c.studentIds||[]).length||+c.size||1):1;
+const size=c=>c?Math.max((c.studentIds||[]).length,+c.size||1):1;
 function rate(n){n=Math.max(1,n|0);const ks=Object.keys(S.rates).map(Number).sort((a,b)=>a-b);let r=S.rates[ks[0]];for(const k of ks)if(n>=k)r=S.rates[k];return +r}
 const eur=v=>"€"+(Math.round(v*100)/100).toLocaleString("en",{maximumFractionDigits:2});
 const vndTxt=v=>S.showVnd&&S.vnd>0?Math.round(v*S.vnd).toLocaleString("en")+" ₫":"";
@@ -219,7 +219,7 @@ function ruleTxt(c){const s=c.slots||[];if(!s.length)return "no schedule";
   return Object.entries(groups).map(([k,d])=>{const[t,ev]=k.split("|");return d.join("/")+" "+t+(+ev>1?" · every "+ev+" wks":"")}).join(" · ")}
 function vClasses(){const today=todayDE();
   const row=c=>`<div class="row" onclick="classForm('${c.id}')" style="cursor:pointer"><span class="dot" style="--c:${c.color}"></span><div class="grow"><div>${esc(c.name)} ${c.level?`<span class="tag">${esc(c.level)}</span>`:""}</div>
-    <div class="mut sm">${ruleTxt(c)}</div><div class="mut sm">${(c.studentIds||[]).length?c.studentIds.map(stName).map(esc).join(", "):size(c)+" students (unnamed)"}</div></div>
+    <div class="mut sm">${ruleTxt(c)}</div><div class="mut sm">${size(c)} students${(c.studentIds||[]).length?": "+c.studentIds.map(stName).map(esc).join(", "):""}</div></div>
     <div style="text-align:right"><div>${eur(rate(size(c)))}</div><div class="mut sm">${sessionNo(c.id,"9999","99")} done</div></div></div>`;
   const act=S.classes.filter(c=>!c.archived),arc=S.classes.filter(c=>c.archived);
   return `<div class="bar"><h1>Classes</h1><button class="pri" onclick="classForm()">+ Class</button></div>
@@ -269,24 +269,24 @@ function drawClass(){const c=draft;
   <div class="chips"><button class="chip" onclick="addSlot()">+ Day</button><button class="chip" onclick="preset([0,2,4])">Mon/Wed/Fri</button><button class="chip" onclick="preset([1,3])">Tue/Thu</button><button class="chip" onclick="preset([5,6])">Weekend</button></div>
   <div class="g2"><div><label>Starts</label><input type="date" value="${c.since||""}" onchange="draft.since=this.value"></div><div><label>Ends (optional)</label><input type="date" value="${c.until||""}" onchange="draft.until=this.value"></div></div>
   <label>Students · rate ${eur(rate(size(c)))} / session</label>
-  <div class="chips">${S.students.map(s=>`<button class="chip ${c.studentIds.includes(s.id)?"on":""}" onclick="tog('${s.id}')">${esc(s.name)}</button>`).join("")}<button class="chip" onclick="quickStudent()">+ New</button></div>
-  <div class="g2"><div><label>Group size if no names</label><input type="number" min="1" value="${c.size||1}" onchange="draft.size=+this.value;drawClass()"></div>
+  <div class="chips" id="stuChips">${S.students.map(s=>`<button class="chip ${c.studentIds.includes(s.id)?"on":""}" onclick="tog('${s.id}')">${esc(s.name)}</button>`).join("")}<button class="chip" onclick="quickStudent()">+ New</button></div>
+  <div class="g2"><div><label>Group size (sets the rate)</label><input type="number" min="1" value="${c.size||1}" onchange="draft.size=+this.value;drawClass()"></div>
   <div><label>Sessions taught before app</label><input type="number" min="0" value="${c.startNo||0}" onchange="draft.startNo=+this.value"></div></div>
   <p class="mut sm">Editing the schedule changes all future and past open sessions. To move just one session, edit it from Week or Month.</p>
   <div class="actions">${c._new?"":`<button class="ghost" onclick="draft.archived=!draft.archived;saveClass()">${c.archived?"Restore":"Archive"}</button>`}<button onclick="closeS()">Cancel</button><button class="pri" onclick="saveClass()">Save</button></div>`)}
 function addSlot(){const l=draft.slots[draft.slots.length-1]||{dow:0,start:"21:00",end:"22:30",every:1};draft.slots.push({dow:(l.dow+2)%7,start:l.start,end:l.end,every:l.every||1});drawClass()}
 function preset(ds){const l=draft.slots[0]||{start:"21:00",end:"22:30",every:1};draft.slots=ds.map(d=>({dow:d,start:l.start,end:l.end,every:l.every||1}));drawClass()}
-function tog(id){const a=draft.studentIds,i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);drawClass()}
-function quickStudent(){if($("#qs"))return;const d=document.createElement("div");d.innerHTML=`<label>New student</label><div style="display:flex;gap:6px"><input id="qs" placeholder="Name"><button class="pri" onclick="addQS()">Add</button></div>`;$("#sheetBody .chips:last-of-type").after(d);$("#qs").focus()}
-function addQS(){const v=$("#qs").value.trim();if(!v)return;const s={id:uid(),name:v};S.students.push(s);draft.studentIds.push(s.id);save();drawClass()}
+function tog(id){const a=draft.studentIds,i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);if(a.length>(+draft.size||1))draft.size=a.length;drawClass()}
+function quickStudent(){if($("#qs"))return;const d=document.createElement("div");d.innerHTML=`<label>New student</label><div style="display:flex;gap:6px"><input id="qs" placeholder="Name" onkeydown="if(event.key==='Enter')addQS()"><button class="pri" onclick="addQS()">Add</button></div>`;$("#stuChips").after(d);$("#qs").focus()}
+function addQS(){const v=$("#qs").value.trim();if(!v)return;const s={id:uid(),name:v};S.students.push(s);draft.studentIds.push(s.id);if(draft.studentIds.length>(+draft.size||1))draft.size=draft.studentIds.length;save();drawClass()}
 function saveClass(){if(!draft.name.trim())draft.name=draft.level||"Class";delete draft._new;const i=S.classes.findIndex(c=>c.id===draft.id);i<0?S.classes.push(draft):S.classes[i]=draft;save();closeS();render()}
 
 function studentForm(id){const s=id?S.students.find(x=>x.id===id):{id:uid(),name:"",note:""};const inC=S.classes.filter(c=>(c.studentIds||[]).includes(s.id));
-  sheet(`<h1>${id?"Student":"New student"}</h1><label>Name</label><input id="sn" value="${esc(s.name)}"><label>Note</label><input id="snote" value="${esc(s.note||"")}" placeholder="contact, goals…">
+  sheet(`<h1>${id?"Student":"New student"}</h1><label>Name</label><input id="sn" value="${esc(s.name)}" onkeydown="if(event.key==='Enter')saveStudent('${s.id}')"><label>Note</label><input id="snote" value="${esc(s.note||"")}" placeholder="contact, goals…">
   <label>Classes</label><div class="chips">${S.classes.filter(c=>!c.archived).map(c=>`<button class="chip ${inC.includes(c)?"on":""}" onclick="this.classList.toggle('on')" data-c="${c.id}">${esc(c.name)}</button>`).join("")}</div>
   <div class="actions">${id?`<button class="ghost" onclick="delStudent('${s.id}')">Delete</button>`:""}<button onclick="closeS()">Cancel</button><button class="pri" onclick="saveStudent('${s.id}')">Save</button></div>`)}
 function saveStudent(id){const n=$("#sn").value.trim();if(!n)return;let s=S.students.find(x=>x.id===id);if(!s){s={id};S.students.push(s)}s.name=n;s.note=$("#snote").value;
-  document.querySelectorAll("[data-c]").forEach(b=>{const c=cls(b.dataset.c),a=c.studentIds,i=a.indexOf(id);if(b.classList.contains("on")&&i<0)a.push(id);if(!b.classList.contains("on")&&i>=0)a.splice(i,1)});save();closeS();render()}
+  document.querySelectorAll("[data-c]").forEach(b=>{const c=cls(b.dataset.c),a=c.studentIds,i=a.indexOf(id);if(b.classList.contains("on")&&i<0){a.push(id);if(a.length>(+c.size||1))c.size=a.length}if(!b.classList.contains("on")&&i>=0)a.splice(i,1)});save();closeS();render()}
 function delStudent(id){S.students=S.students.filter(s=>s.id!==id);S.classes.forEach(c=>c.studentIds=(c.studentIds||[]).filter(x=>x!==id));save();closeS();render()}
 
 function sessForm(k){const o=findOcc(k),c=cls(o.cid),e=S.log[k]||{};
