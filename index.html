@@ -12,7 +12,11 @@
 <title>Classbook</title>
 <style>
 :root{--bg:#FAF8F5;--fg:#141414;--mut:#8a8580;--line:#ebe6e0;--acc:#1E3A8A;--accl:#c9d3ea;--bur:#7A1F3D;--soft:#f1ede8;--nav:#141414;--navfg:#FAF8F5}
-@media (prefers-color-scheme:dark){:root{--bg:#0F1115;--fg:#F3EFE9;--mut:#8b8f98;--line:#23262d;--soft:#181b21;--acc:#3B5BDB;--accl:#2c3550;--bur:#B0405F;--nav:#07080a;--navfg:#F3EFE9}}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0F1115;--fg:#F3EFE9;--mut:#8b8f98;--line:#23262d;--soft:#181b21;--acc:#3B5BDB;--accl:#2c3550;--bur:#B0405F;--nav:#07080a;--navfg:#F3EFE9}}
+:root[data-theme=dark]{--bg:#0F1115;--fg:#F3EFE9;--mut:#8b8f98;--line:#23262d;--soft:#181b21;--acc:#3B5BDB;--accl:#2c3550;--bur:#B0405F;--nav:#07080a;--navfg:#F3EFE9}
+.tbtn{position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--soft);z-index:5;font-size:16px}
+main .bar:first-child{padding-right:44px}
+.mem{display:inline-flex;align-items:center;gap:4px;border-radius:16px;padding:4px 6px 4px 12px;background:var(--acc);color:#fff}.mem b{font-weight:400;cursor:pointer;padding:0 6px;opacity:.75}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif}
 main{max-width:620px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 18px 100px}
@@ -62,6 +66,7 @@ a{color:var(--acc)}
 <body>
 <main id="app"></main>
 <nav id="nav"></nav>
+<button class="tbtn" id="tbtn" onclick="toggleTheme()" aria-label="Light / dark mode"></button>
 <div id="sheet"><div id="sheetBody"></div></div>
 <script>
 /* ================= data ================= */
@@ -270,7 +275,9 @@ function drawClass(){const c=draft;
   <div class="chips"><button class="chip" onclick="addSlot()">+ Day</button><button class="chip" onclick="preset([0,2,4])">Mon/Wed/Fri</button><button class="chip" onclick="preset([1,3])">Tue/Thu</button><button class="chip" onclick="preset([5,6])">Weekend</button></div>
   <div class="g2"><div><label>Starts</label><input type="date" value="${c.since||""}" onchange="draft.since=this.value"></div><div><label>Ends (optional)</label><input type="date" value="${c.until||""}" onchange="draft.until=this.value"></div></div>
   <label>Students · rate ${eur(rate(size(c)))} / session</label>
-  <div class="chips" id="stuChips">${S.students.map(s=>`<button class="chip ${c.studentIds.includes(s.id)?"on":""}" onclick="tog('${s.id}')">${esc(s.name)}</button>`).join("")}<button class="chip" onclick="quickStudent()">+ New</button></div>
+  <div class="chips" id="stuChips">${c.studentIds.map(id=>`<span class="mem">${esc(stName(id))}<b onclick="tog('${id}')" title="Remove">✕</b></span>`).join("")||'<span class="mut sm">No students yet</span>'}</div>
+  <div style="display:flex;gap:6px;margin-top:8px"><input id="qs" list="stuList" placeholder="Add student (new or existing)" onkeydown="if(event.key==='Enter')addQS()"><button onclick="addQS()">Add</button></div>
+  <datalist id="stuList">${S.students.filter(s=>!c.studentIds.includes(s.id)).map(s=>`<option value="${esc(s.name)}">`).join("")}</datalist>
   <div class="g2"><div><label>Group size (sets the rate)</label><input type="number" min="1" value="${c.size||1}" onchange="draft.size=+this.value;drawClass()"></div>
   <div><label>Sessions taught before app</label><input type="number" min="0" value="${c.startNo||0}" onchange="draft.startNo=+this.value"></div></div>
   <p class="mut sm">Editing the schedule changes all future and past open sessions. To move just one session, edit it from Week or Month.</p>
@@ -279,7 +286,7 @@ function addSlot(){const l=draft.slots[draft.slots.length-1]||{dow:0,start:"21:0
 function preset(ds){const l=draft.slots[0]||{start:"21:00",end:"22:30",every:1};draft.slots=ds.map(d=>({dow:d,start:l.start,end:l.end,every:l.every||1}));drawClass()}
 function tog(id){const a=draft.studentIds,i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);if(a.length>(+draft.size||1))draft.size=a.length;drawClass()}
 function quickStudent(){if($("#qs"))return;const d=document.createElement("div");d.innerHTML=`<label>New student</label><div style="display:flex;gap:6px"><input id="qs" placeholder="Name" onkeydown="if(event.key==='Enter')addQS()"><button class="pri" onclick="addQS()">Add</button></div>`;$("#stuChips").after(d);$("#qs").focus()}
-function addQS(){const v=$("#qs").value.trim();if(!v)return;const s={id:uid(),name:v};S.students.push(s);draft.studentIds.push(s.id);if(draft.studentIds.length>(+draft.size||1))draft.size=draft.studentIds.length;save();drawClass()}
+function addQS(){const v=$("#qs").value.trim();if(!v)return;let s=S.students.find(x=>x.name.toLowerCase()===v.toLowerCase());if(!s){s={id:uid(),name:v};S.students.push(s)}if(draft.studentIds.includes(s.id)){$("#qs").value="";return}draft.studentIds.push(s.id);if(draft.studentIds.length>(+draft.size||1))draft.size=draft.studentIds.length;save();drawClass()}
 function saveClass(){if(!draft.name.trim())draft.name=draft.level||"Class";delete draft._new;const i=S.classes.findIndex(c=>c.id===draft.id);i<0?S.classes.push(draft):S.classes[i]=draft;save();closeS();render()}
 
 function studentForm(id){const s=id?S.students.find(x=>x.id===id):{id:uid(),name:"",note:""};const inC=S.classes.filter(c=>(c.studentIds||[]).includes(s.id));
@@ -336,6 +343,12 @@ function saveExtra(){let cid=$("#xc").value;const date=$("#xd").value,start=$("#
   else{const x={id:"x"+uid(),cid,date,start,end};S.extras.push(x);if(n!==size(c))S.log[x.id]={n}}
   save();closeS();render()}
 
+function applyTheme(){let t=null;try{t=localStorage.getItem("classbook.theme")}catch(e){}
+  if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;
+  const dark=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;$("#tbtn").textContent=dark?"☀":"☾";
+  document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.content=dark?"#0F1115":"#FAF8F5";m.removeAttribute("media")})}
+function toggleTheme(){const dark=$("#tbtn").textContent==="☀";try{localStorage.setItem("classbook.theme",dark?"light":"dark")}catch(e){}applyTheme()}
+applyTheme();
 /* ================= boot ================= */
 window.addEventListener("hashchange",()=>{const t=location.hash.slice(1);if(t&&t!==tab){tab=t;render()}});
 loadLocal();S.classes.forEach(c=>{if(OLD[c.color])c.color=OLD[c.color]});render();pull();if(S.showVnd)updateVnd();
